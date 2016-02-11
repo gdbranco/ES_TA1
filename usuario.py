@@ -82,13 +82,14 @@ class Mwinfo:
         # return self.grade_horaria
 
 class Pibicinfo:
-    def __init__(self,_nome,_dono, _descricao, _membros, _atividades, _tempo, _minIra, _prereq = [()]):
+    def __init__(self,_nome,_dono, _descricao, _membros, _atividades, _tempo, _categoria,_minIra, _prereq = [()]):
         self.nome = _nome
         self.dono = _dono #matricula do professor
         self.descricao = _descricao #descricao do pibic
         self.membros = _membros #lista da classe membro que ainda falta fazer
         self.atividades = _atividades #lista de atividades
         self.tempo = _tempo #duracao do pibic em semestres
+        self.categoria = _categoria
 	self.minIra = _minIra #
 	self.prereq = _prereq #
     def __str__(self):
@@ -96,6 +97,7 @@ class Pibicinfo:
     def mostra_pibicinfo(self):
         print "nome : " + self.getNome()
         print "descricao : " + self.getDescricao()
+        print "categoria : " + self.getCategoria()
         print "membros : ", self.getMembros()
         print "atividades : ", self.getAtividades()
         print "duracao : " + str(self.getTempo())
@@ -127,6 +129,8 @@ class Pibicinfo:
         return self.minIra
     def getPreq(self):
         return self.prereq
+   	def getCategoria(self):
+   		return self.categoria
 
 def pertence(lista,filtro):
     i=0
@@ -136,12 +140,25 @@ def pertence(lista,filtro):
         i+=1
     return False, -1
 
+def pertence_recursivo(lista,filtro):
+	indices = []
+	i=0
+	for x in lista:
+		if filtro(x):
+			indices.append(i)
+		i+=1
+	return indices
+
 def pesquisar_pibics():
     #para cada professor listar os pibics de acordo com a categoria escolhida, alem disso quando for escolher um pibic para ser visitado deve-se checar qual professor o pibic foi escolhido
-    # for professor in lista_professor:
-        # existe, posicao = pertence_recursivo(professor.getPibicinfo(),lambda x: x.categoria == tipo)
-        # if existe:
-    print "nem tem pibic bbk"
+    tipo = raw_input("Digite a categoria do pibic : ")
+    for professor in lista_professores:
+    	posicoes = pertence_recursivo(professor.getPibicinfo(),lambda x: x.categoria == tipo)
+    	if posicoes != []:
+    		print "Professor " + professor.getNome()
+    		for i in posicoes:
+    			print "Pibic " + str(i+1)
+    			print professor.getPibicinfo()[i]
 
 
 def sendApplymail(professor,aluno):
@@ -156,7 +173,7 @@ def sendApplymail(professor,aluno):
     text = msg.as_string()
     server.sendmail(aluno.getEmail(),professor.getEmail(),text)
     server.quit()
-    print "Enviei"
+    print "[OK] Email enviado com sucesso"
 
 def mostrar_pibic_detalhado(posicao,which):
     lista_professores[posicao].getPibicinfo()[which].mostra_pibicinfo()
@@ -201,14 +218,14 @@ def menu():
             sair = 1
 
 def init_cenarios():
-    lista_professores.append(Professor("Rezende",123,"rapharelo@hotmail.com",[Pibicinfo("Seguranca",123,"Trabalhar com topicos na area de seguranca",[],["Varredura de redes","Verificar falhas","Realizar ataques"],2, 2, [("Canto Coral", "MM"), ("OA", "MS")])]))
-    lista_professores.append(Professor("Ladeira",12,"samuelpala@gmail.com",[Pibicinfo("Inteligencia artificial",12,"Aplicacao de inteligencia artificial",[("Diego",1)],["Analisar o problema","Verificar a inteligencia","treinar a maquina"],4, 3, [("CB", "SS"), ("POO", "MS")]),Pibicinfo("BBKisse",12,"Aplicacao da bbkisse",[("Amaral",1),("Zika",0)],["Analisar o problema","Verificar a bbkisse","treinar a maquina para ser bbk"],20, 4, [("ED", "MM"), ("BD", "SR")])]))
+    lista_professores.append(Professor("Rezende",123,"prezende@unb.br",[Pibicinfo("Seguranca",123,"Trabalhar com topicos na area de seguranca",[],["Varredura de redes","Verificar falhas","Realizar ataques"],2, "computacao",2, [("Canto Coral", "MM"), ("OA", "MS")])]))
+    lista_professores.append(Professor("Ladeira",12,"mladeira@unb.br",[Pibicinfo("Inteligencia artificial",12,"Aplicacao de inteligencia artificial",[("Diego",1)],["Analisar o problema","Verificar a inteligencia","treinar a maquina"],4, "computacao",3, [("CB", "SS"), ("POO", "MS")]),Pibicinfo("BBKisse",12,"Aplicacao da bbkisse",[("Amaral",1),("Zika",0)],["Analisar o problema","Verificar a bbkisse","treinar a maquina para ser bbk"],20, "sera", 4, [("ED", "MM"), ("BD", "SR")])]))
     #teste professores OK
     # for professor in lista_professores:
         # print "-------------------------------"
         # print professor
     lista_alunos.append(Aluno("Rafael",554913100,"rapharelo@hotmail.com",Mwinfo(2.9,[("CB","MM"),("ED","SS"),("PS","MS"),("OA","MM"),("BD","II"),("POO","MS")])))
-    lista_alunos.append(Aluno("Samuel",110066120,"rapharelo@hotmail.com",Mwinfo(3.6,[("CB","SS"),("ED","SS"),("PS","SS"),("OA","SS"),("BD","SS"),("POO","SS")])))
+    lista_alunos.append(Aluno("Samuel",110066120,"samuelpala@gmail.com",Mwinfo(3.6,[("CB","SS"),("ED","SS"),("PS","SS"),("OA","SS"),("BD","SS"),("POO","SS")])))
     #teste alunos
     # for aluno in lista_alunos:
         # print "---------------------------------"
