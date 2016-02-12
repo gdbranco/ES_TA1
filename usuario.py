@@ -48,15 +48,7 @@ class Professor(Usuario):
     def mostra_minInfo(self):
         print "------------------------------"
         print "Nome : " + super(Professor,self).getNome()
-        print "ID : " + str(super(Professor,self).getID())
         print "Email : " + super(Professor,self).getEmail()
-        i=1
-        for pibic in self.lista_pibicinfo:
-            print "---Pibic {0}---".format(i)
-            print "Nome do pibic : " + pibic.getNome()
-            print "Descricao : " + pibic.getDescricao()
-            i+=1
-        print "------------------------------"
     def getPibicinfo(self):
         return self.lista_pibicinfo
     def setPibicinfo(self,_pibicinfo):
@@ -95,14 +87,18 @@ class Pibicinfo:
     def __str__(self):
         return "nome = {5}\ndono = {0}\ndescricao = {4}\nmembros = {1}\natividades = {2}\ntempo = {3}\nIRAMin = {6}\nPrereq = {7}".format(self.dono,self.membros,self.atividades,self.tempo,self.descricao,self.nome,self.minIra, self.prereq)
     def mostra_pibicinfo(self):
-        print "nome : " + self.getNome()
-        print "descricao : " + self.getDescricao()
-        print "categoria : " + self.getCategoria()
-        print "membros : ", self.getMembros()
-        print "atividades : ", self.getAtividades()
-        print "duracao : " + str(self.getTempo())
-        print "Ira minimo : " + str(self.getMinIRA())
-        print "Pre requisitos : ", self.getPreq()
+        print ".nome : " + self.getNome()
+        print ".descricao : " + self.getDescricao()
+        print ".categoria : " + self.getCategoria()
+        member_list = [seq[0] for seq in self.getMembros()]
+        print ".membros : " + ",".join(member_list)
+        print ".atividades : \n-" + "\n-".join(self.getAtividades())
+        print ".duracao : " + str(self.getTempo())
+        print ".Ira minimo : " + str(self.getMinIRA())
+        print ".Pre-requisitos : \n-" + "\n-" .join("(%s,%s)" % tup for tup in self.getPreq())
+    def mostra_minInfo(self):
+        print ".Nome do pibic : " + self.getNome()
+        print ".Descricao : " + self.getDescricao()
     def getNome(self):
         return self.nome
     def getDono(self):
@@ -129,8 +125,8 @@ class Pibicinfo:
         return self.minIra
     def getPreq(self):
         return self.prereq
-   	def getCategoria(self):
-   		return self.categoria
+    def getCategoria(self):
+        return self.categoria
 
 def pertence(lista,filtro):
     i=0
@@ -152,14 +148,33 @@ def pertence_recursivo(lista,filtro):
 def pesquisar_pibics():
     #para cada professor listar os pibics de acordo com a categoria escolhida, alem disso quando for escolher um pibic para ser visitado deve-se checar qual professor o pibic foi escolhido
     tipo = raw_input("Digite a categoria do pibic : ")
+    lista_categoria = []
+    lista_pibics = []
+    lista_final = []
+    voltar = 0
     for professor in lista_professores:
     	posicoes = pertence_recursivo(professor.getPibicinfo(),lambda x: x.categoria == tipo)
-    	if posicoes != []:
-    		print "Professor " + professor.getNome()
-    		for i in posicoes:
-    			print "Pibic " + str(i+1)
-    			print professor.getPibicinfo()[i]
-
+        if posicoes != []:
+            lista_categoria.append((professor.getNome(),posicoes)) #adiciona o professor e o pibic relacionado a ele na lista de encontrados a partir do tema
+    if lista_categoria != []:
+        while not voltar:
+            k = 0
+            for lista_pibics in lista_categoria:
+                existe, posicao = pertence(lista_professores, lambda x: x.nome == lista_pibics[0]) #busca o professor contido na lista de pibics da categoria
+                lista_professores[posicao].mostra_minInfo() #Mostra a informacao basica de cada professor
+                for j in lista_pibics[1]: #para cada pibic que se enquadra na categoria
+                    print ".Pibic " + str(k+1)
+                    k+=1
+                    lista_professores[posicao].getPibicinfo()[j].mostra_minInfo() #mostra a informacao basica do pibic
+                    lista_final.append(lista_professores[posicao].getPibicinfo()[j])
+            print "------------------------------"
+            print "0.Voltar"
+            opt = int(raw_input("Ver detalhamente o pibic : "))
+            if opt == OPT_SAIR:
+                voltar = 1
+            else:
+                if apply_to_pibic(lista_final[opt-1]) == OPT_SAIR:
+                    return OPT_SAIR
 
 def sendApplymail(professor,aluno):
     msg = MIMEMultipart()
@@ -175,8 +190,8 @@ def sendApplymail(professor,aluno):
     server.quit()
     print "[OK] Email enviado com sucesso"
 
-def mostrar_pibic_detalhado(posicao,which):
-    lista_professores[posicao].getPibicinfo()[which].mostra_pibicinfo()
+def apply_to_pibic(pibic):
+    pibic.mostra_pibicinfo()
     print "0.Voltar"
     print "1.Aplicar-se"
     opt = int(raw_input("Insira uma opcao : "))
@@ -191,6 +206,12 @@ def pesquisar_professores():
         existe, posicao = pertence(lista_professores, lambda x: x.nome == who)
         if existe:
             lista_professores[posicao].mostra_minInfo()
+            i=1
+            for pibic in lista_professores[posicao].getPibicinfo():
+                print "\tPibic {0}".format(i)
+                pibic.mostra_minInfo()
+                i+=1
+            print "------------------------------"
             print "0.Voltar"
             opt = int(raw_input("Ver detalhamente o pibic : "))
             if opt == OPT_SAIR:
@@ -198,7 +219,7 @@ def pesquisar_professores():
             elif opt > len(lista_professores[posicao].getPibicinfo()) or opt < 1:
                 print "[ERRO] Pibic inexistente"
             else:
-                if mostrar_pibic_detalhado(posicao,opt-1) == OPT_SAIR:
+                if apply_to_pibic(lista_professores[posicao].getPibicinfo()[opt-1]) == OPT_SAIR:
                     return OPT_SAIR
         else:
             print "[ERRO] Professor inexistente"
@@ -218,18 +239,35 @@ def menu():
             sair = 1
 
 def init_cenarios():
-    lista_professores.append(Professor("Rezende",123,"prezende@unb.br",[Pibicinfo("Seguranca",123,"Trabalhar com topicos na area de seguranca",[],["Varredura de redes","Verificar falhas","Realizar ataques"],2, "computacao",2, [("Canto Coral", "MM"), ("OA", "MS")])]))
-    lista_professores.append(Professor("Ladeira",12,"mladeira@unb.br",[Pibicinfo("Inteligencia artificial",12,"Aplicacao de inteligencia artificial",[("Diego",1)],["Analisar o problema","Verificar a inteligencia","treinar a maquina"],4, "computacao",3, [("CB", "SS"), ("POO", "MS")]),Pibicinfo("BBKisse",12,"Aplicacao da bbkisse",[("Amaral",1),("Zika",0)],["Analisar o problema","Verificar a bbkisse","treinar a maquina para ser bbk"],20, "sera", 4, [("ED", "MM"), ("BD", "SR")])]))
-    #teste professores OK
-    # for professor in lista_professores:
-        # print "-------------------------------"
-        # print professor
-    lista_alunos.append(Aluno("Rafael",554913100,"rapharelo@hotmail.com",Mwinfo(2.9,[("CB","MM"),("ED","SS"),("PS","MS"),("OA","MM"),("BD","II"),("POO","MS")])))
-    lista_alunos.append(Aluno("Samuel",110066120,"samuelpala@gmail.com",Mwinfo(3.6,[("CB","SS"),("ED","SS"),("PS","SS"),("OA","SS"),("BD","SS"),("POO","SS")])))
-    #teste alunos
-    # for aluno in lista_alunos:
-        # print "---------------------------------"
-        # print aluno
+    lista_professores.append(
+    Professor("Rezende",123,"prezende@unb.br",#Nome, ID e email do professor
+        [Pibicinfo("Seguranca",123,"Trabalhar com topicos na area de seguranca", #Criacao do pibic Area, ID do professor, Descricao
+        [], #Lista de membros
+        ["Varredura de redes","Verificar falhas","Realizar ataques"], #Lista de atividades
+        2, #Duracao
+        "computacao", #Tema
+        2, #IRA minimo
+        [("Canto Coral", "MM"), ("OA", "MS")])])) #Pre requisitos
+    lista_professores.append(
+    Professor("Ladeira",12,"mladeira@unb.br",
+        [Pibicinfo("Inteligencia artificial",12,"Aplicacao de inteligencia artificial",
+        [("Diego",1)],
+        ["Analisar o problema","Verificar a inteligencia","treinar a maquina"],
+        4,
+        "computacao",
+        3,
+        [("CB", "SS"), ("POO", "MS")]),
+        Pibicinfo("BBKisse",12,"Aplicacao da bbkisse",
+        [("Amaral",1),("Zika",0)],
+        ["Analisar o problema","Verificar a bbkisse","treinar a maquina para ser bbk"],
+        20, 
+        "sera",
+        4,
+        [("ED", "MM"), ("BD", "SR")])]))
+    lista_alunos.append(Aluno("Rafael",554913100,"rapharelo@hotmail.com",#Nome, matricula e email do aluno
+        Mwinfo(2.9,[("CB","MM"),("ED","SS"),("PS","MS"),("OA","MM"),("BD","II"),("POO","MS")]))) #informacoes do matribula web
+    lista_alunos.append(Aluno("Samuel",110066120,"samuelpala@gmail.com",
+        Mwinfo(3.6,[("CB","SS"),("ED","SS"),("PS","SS"),("OA","SS"),("BD","SS"),("POO","SS")])))
 
 def main():
     init_cenarios()
