@@ -187,7 +187,7 @@ def sendApplymail(aluno,pibic):
     msg['From'] = aluno.getEmail()
     msg['To'] = professor.getEmail()
     msg['Subject'] = "Aplicacao no pibic"
-    msg.attach(MIMEText(str(str(aluno) + "\n" + pibic.getMinpibicinfo()), 'plain'))
+    msg.attach(MIMEText("Ola professor(a) voce possui uma nova aplicacao no seu pibic, as informacoes quanto ao pibic e o aluno estao abaixo: " + str("\n" + str(aluno) + "\n" + pibic.getMinpibicinfo()), 'plain'))
     server = smtplib.SMTP('smtp.live.com', 587)
     server.starttls()
     server.login("rapharelo@hotmail.com","populoso96")
@@ -249,7 +249,7 @@ def menu():
 
 def init_cenarios():
     lista_professores.append(
-    Professor("Rezende",123,"prezende@unb.br",#Nome, ID e email do professor
+    Professor("Rezende",123,"samuelpala@gmail.com",#Nome, ID e email do professor
         [Pibicinfo("Seguranca",123,"Trabalhar com topicos na area de seguranca", #Criacao do pibic Area, ID do professor, Descricao
         [], #Lista de membros
         ["Varredura de redes","Verificar falhas","Realizar ataques"], #Lista de atividades
@@ -258,7 +258,7 @@ def init_cenarios():
         3, #IRA minimo
         [("Canto Coral", "MM"), ("OA", "MS")])])) #Pre requisitos
     lista_professores.append(
-    Professor("Ladeira",12,"mladeira@unb.br",
+    Professor("Ladeira",12,"gdbranco@gmail.com",
         [Pibicinfo("Inteligencia artificial",12,"Aplicacao de inteligencia artificial",
         [("Diego",1)],
         ["Analisar o problema","Verificar a inteligencia","treinar a maquina"],
@@ -266,6 +266,15 @@ def init_cenarios():
         "computacao",
         4,
         [("CB", "SS"), ("POO", "MS")])]))
+    lista_professores.append(
+    Professor("Fernanda Lima",10,"ferlima@cic.unb.br",
+        [Pibicinfo("Engenharia de Software",10,"pic - projeto de informacao cientifica",
+        [("Rafael",0),("Guilherme",0)],
+        ["Levantar os requisitos","Planejamento dos riscos","Desenvolvimento do prototipo de baixa fidelidade","desenvolvimento do prototipo"],
+        1,
+        "computacao",
+        3,
+        [("PS","MM"),("POO","MS")])]))
     lista_alunos.append(Aluno("Rafael",554913100,"rapharelo@hotmail.com",#Nome, matricula e email do aluno
         Mwinfo(2.9,[("CB","MM"),("ED","SS"),("PS","MS"),("OA","MM"),("BD","II"),("POO","MS")]))) #informacoes do matribula web
     lista_alunos.append(Aluno("Samuel",110066120,"samuelpala@gmail.com",
