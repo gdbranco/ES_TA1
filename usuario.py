@@ -15,7 +15,7 @@ class Usuario(object):
         self.ID = _ID
         self.Email = _email
     def __str__(self):
-        return "nome = {0}\tID = {1}\tEmail = {2}".format(self.nome,self.ID,self.Email)
+        return ".Nome : {0}\n.Matricula : {1}\n.Email : {2}".format(self.nome,self.ID,self.Email)
     def getNome(self):
         return self.nome
     def setNome(self,_nome):
@@ -86,19 +86,23 @@ class Pibicinfo:
 	self.prereq = _prereq #
     def __str__(self):
         return "nome = {5}\ndono = {0}\ndescricao = {4}\nmembros = {1}\natividades = {2}\ntempo = {3}\nIRAMin = {6}\nPrereq = {7}".format(self.dono,self.membros,self.atividades,self.tempo,self.descricao,self.nome,self.minIra, self.prereq)
+    def getMinpibicinfo(self):
+        return (".nome : " + self.getNome() + "\n" +
+                ".descricao : " + self.getDescricao() + "\n" +
+                ".tema : " + self.getCategoria())
+    def getPibicinfo(self):
+        return (".nome : " + self.getNome() + "\n" +
+                ".descricao : " + self.getDescricao() + "\n" +
+                ".categoria : " + self.getCategoria() + "\n" +
+                ".membros : " + ",".join([seq[0] for seq in self.getMembros()]) + "\n" +
+                ".atividades : \n-" + "\n-".join(self.getAtividades()) + "\n" +
+                ".duracao : " + str(self.getTempo()) + "\n" +
+                ".Ira minimo : " + str(self.getMinIRA()) + "\n" +
+                ".Pre-requisitos : \n-" + "\n-" .join("(%s,%s)" % tup for tup in self.getPreq()))
     def mostra_pibicinfo(self):
-        print ".nome : " + self.getNome()
-        print ".descricao : " + self.getDescricao()
-        print ".categoria : " + self.getCategoria()
-        member_list = [seq[0] for seq in self.getMembros()]
-        print ".membros : " + ",".join(member_list)
-        print ".atividades : \n-" + "\n-".join(self.getAtividades())
-        print ".duracao : " + str(self.getTempo())
-        print ".Ira minimo : " + str(self.getMinIRA())
-        print ".Pre-requisitos : \n-" + "\n-" .join("(%s,%s)" % tup for tup in self.getPreq())
+        print self.getPibicinfo()
     def mostra_minInfo(self):
-        print ".Nome do pibic : " + self.getNome()
-        print ".Descricao : " + self.getDescricao()
+        print self.getMinpibicinfo()
     def getNome(self):
         return self.nome
     def getDono(self):
@@ -173,15 +177,17 @@ def pesquisar_pibics():
             if opt == OPT_SAIR:
                 voltar = 1
             else:
-                if apply_to_pibic(lista_final[opt-1]) == OPT_SAIR:
+                if apply_to_pibic(lista_alunos[aluno_teste],lista_final[opt-1]) == OPT_SAIR:
                     return OPT_SAIR
 
-def sendApplymail(professor,aluno):
+def sendApplymail(aluno,pibic):
+    existe, posicao = pertence(lista_professores, lambda x: x.ID == pibic.getDono())
+    professor  = lista_professores[posicao]
     msg = MIMEMultipart()
     msg['From'] = aluno.getEmail()
     msg['To'] = professor.getEmail()
     msg['Subject'] = "Aplicacao no pibic"
-    msg.attach(MIMEText(str(str(aluno) + "\n" + str(professor)), 'plain'))
+    msg.attach(MIMEText(str(str(aluno) + "\n" + pibic.getMinpibicinfo()), 'plain'))
     server = smtplib.SMTP('smtp.live.com', 587)
     server.starttls()
     server.login("rapharelo@hotmail.com","populoso96")
@@ -190,14 +196,17 @@ def sendApplymail(professor,aluno):
     server.quit()
     print "[OK] Email enviado com sucesso"
 
-def apply_to_pibic(pibic):
+def apply_to_pibic(aluno,pibic):
     pibic.mostra_pibicinfo()
     print "0.Voltar"
     print "1.Aplicar-se"
     opt = int(raw_input("Insira uma opcao : "))
     if opt == APLICAR:
-        sendApplymail(lista_professores[posicao],lista_alunos[aluno_teste])
-        return OPT_SAIR
+        if aluno.getMwinfo().getIRA() >= pibic.getMinIRA():
+            sendApplymail(aluno,pibic)
+            return OPT_SAIR
+        else:
+            print "[ALRT] O IRA do aluno eh menor do que o necessario"
 
 def pesquisar_professores():
     who = raw_input("Nome do professor a ser buscado : ")
@@ -213,13 +222,13 @@ def pesquisar_professores():
                 i+=1
             print "------------------------------"
             print "0.Voltar"
-            opt = int(raw_input("Ver detalhamente o pibic : "))
+            opt = int(raw_input("Ver detalhadamente o pibic : "))
             if opt == OPT_SAIR:
                 voltar = 1
             elif opt > len(lista_professores[posicao].getPibicinfo()) or opt < 1:
                 print "[ERRO] Pibic inexistente"
             else:
-                if apply_to_pibic(lista_professores[posicao].getPibicinfo()[opt-1]) == OPT_SAIR:
+                if apply_to_pibic(lista_alunos[aluno_teste],lista_professores[posicao].getPibicinfo()[opt-1]) == OPT_SAIR:
                     return OPT_SAIR
         else:
             print "[ERRO] Professor inexistente"
@@ -246,7 +255,7 @@ def init_cenarios():
         ["Varredura de redes","Verificar falhas","Realizar ataques"], #Lista de atividades
         2, #Duracao
         "computacao", #Tema
-        2, #IRA minimo
+        3, #IRA minimo
         [("Canto Coral", "MM"), ("OA", "MS")])])) #Pre requisitos
     lista_professores.append(
     Professor("Ladeira",12,"mladeira@unb.br",
@@ -255,15 +264,8 @@ def init_cenarios():
         ["Analisar o problema","Verificar a inteligencia","treinar a maquina"],
         4,
         "computacao",
-        3,
-        [("CB", "SS"), ("POO", "MS")]),
-        Pibicinfo("BBKisse",12,"Aplicacao da bbkisse",
-        [("Amaral",1),("Zika",0)],
-        ["Analisar o problema","Verificar a bbkisse","treinar a maquina para ser bbk"],
-        20, 
-        "sera",
         4,
-        [("ED", "MM"), ("BD", "SR")])]))
+        [("CB", "SS"), ("POO", "MS")])]))
     lista_alunos.append(Aluno("Rafael",554913100,"rapharelo@hotmail.com",#Nome, matricula e email do aluno
         Mwinfo(2.9,[("CB","MM"),("ED","SS"),("PS","MS"),("OA","MM"),("BD","II"),("POO","MS")]))) #informacoes do matribula web
     lista_alunos.append(Aluno("Samuel",110066120,"samuelpala@gmail.com",
