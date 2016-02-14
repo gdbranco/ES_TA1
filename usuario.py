@@ -8,7 +8,7 @@ clear = lambda: os.system("clear")
 
 OPT_SAIR = 0
 APLICAR = 1
-aluno_teste = 1
+aluno_teste = 0
 lista_professores = []
 lista_alunos = []
 class Usuario(object):
@@ -198,6 +198,7 @@ def sendApplymail(aluno,professor,pibic):
     msg['Subject'] = "Aplicacao no pibic"
     msg.attach(MIMEText("Ola professor(a) voce possui uma nova aplicacao no seu pibic, as informacoes quanto ao pibic e o aluno estao abaixo: " + str("\n---Informacoes do aluno---\n" + aluno.getNome() + "\t" + str(aluno.getID()) + "\n" + aluno.getMwinfo().getMinmwinfo() + "\n---Informacoes do pibic---\n" + pibic.getMinpibicinfo()), 'plain'))
     server = smtplib.SMTP('smtp.live.com', 587) #conecta smtp para live.com email que estamos utilizando para enviar no momento
+    server.set_debuglevel(1)
     server.starttls()
     server.login("rapharelo@hotmail.com","populoso96")
     text = msg.as_string()
@@ -295,7 +296,7 @@ def init_cenarios():
         3,
         [("PS","MM"),("POO","MS")])]))
     lista_alunos.append(Aluno("Rafael",554913100,"rapharelo@hotmail.com",#Nome, matricula e email do aluno
-        Mwinfo(2.9,[("CB","MM"),("ED","SS"),("PS","MS"),("OA","MM"),("BD","II"),("POO","MS")]))) #informacoes do matribula web
+        Mwinfo(5,[("CB","MM"),("ED","SS"),("PS","MS"),("OA","MM"),("BD","II"),("POO","MS")]))) #informacoes do matribula web
     lista_alunos.append(Aluno("Samuel",110066120,"samuelpala@gmail.com",
         Mwinfo(3.6,[("CB","SS"),("ED","SS"),("PS","SS"),("OA","SS"),("BD","SS"),("POO","SS")])))
 
