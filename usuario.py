@@ -3,6 +3,8 @@
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 import smtplib
+import os
+clear = lambda: os.system("clear")
 
 OPT_SAIR = 0
 APLICAR = 1
@@ -62,6 +64,9 @@ class Mwinfo:
         # self.grade_horaria = _grade_horaria #lista de tuplas, materias e horario
     def __str__(self):
         return "IRA = {0}\n---historico escolar---\n{1}".format(self.IRA,self.hist_escolar)
+    def getMinmwinfo(self):
+    	return (".IRA : " + str(self.getIRA()) + "\n" + 
+				".Historico escolar : " + ",".join("(%s,%s)" % tup for tup in self.getHist_escolar()))
     def getIRA(self):
         return self.IRA
     def setIRA(self,_ira):
@@ -151,7 +156,7 @@ def pertence_recursivo(lista,filtro):
 
 def pesquisar_pibics():
     #para cada professor listar os pibics de acordo com a categoria escolhida, alem disso quando for escolher um pibic para ser visitado deve-se checar qual professor o pibic foi escolhido
-    tipo = raw_input("Digite a categoria do pibic : ")
+    tipo = raw_input("Digite o tema do pibic : ")
     lista_categoria = []
     lista_pibics = []
     lista_final = []
@@ -163,6 +168,8 @@ def pesquisar_pibics():
     if lista_categoria != []:
         while not voltar:
             k = 0
+	    clear()
+	    print "Pibics com o tema " + tipo + " encontrados : "
             for lista_pibics in lista_categoria:
                 existe, posicao = pertence(lista_professores, lambda x: x.nome == lista_pibics[0]) #busca o professor contido na lista de pibics da categoria
                 lista_professores[posicao].mostra_minInfo() #Mostra a informacao basica de cada professor
@@ -179,39 +186,50 @@ def pesquisar_pibics():
             else:
                 if apply_to_pibic(lista_alunos[aluno_teste],lista_final[opt-1]) == OPT_SAIR:
                     return OPT_SAIR
+    else:
+	print "[ALRT] Nenhum pibic com o tema " + tipo + " foi encontrado"
+	raw_input("[ENTER] para continuar")
+	clear()
 
-def sendApplymail(aluno,pibic):
-    existe, posicao = pertence(lista_professores, lambda x: x.ID == pibic.getDono())
-    professor  = lista_professores[posicao]
+def sendApplymail(aluno,professor,pibic):
     msg = MIMEMultipart()
     msg['From'] = aluno.getEmail()
     msg['To'] = professor.getEmail()
     msg['Subject'] = "Aplicacao no pibic"
-    msg.attach(MIMEText("Ola professor(a) voce possui uma nova aplicacao no seu pibic, as informacoes quanto ao pibic e o aluno estao abaixo: " + str("\n" + str(aluno) + "\n" + pibic.getMinpibicinfo()), 'plain'))
-    server = smtplib.SMTP('smtp.live.com', 587)
+    msg.attach(MIMEText("Ola professor(a) voce possui uma nova aplicacao no seu pibic, as informacoes quanto ao pibic e o aluno estao abaixo: " + str("\n---Informacoes do aluno---\n" + aluno.getNome() + "\t" + str(aluno.getID()) + "\n" + aluno.getMwinfo().getMinmwinfo() + "\n---Informacoes do pibic---\n" + pibic.getMinpibicinfo()), 'plain'))
+    server = smtplib.SMTP('smtp.live.com', 587) #conecta smtp para live.com email que estamos utilizando para enviar no momento
     server.starttls()
     server.login("rapharelo@hotmail.com","populoso96")
     text = msg.as_string()
     server.sendmail(aluno.getEmail(),professor.getEmail(),text)
     server.quit()
     print "[OK] Email enviado com sucesso"
+    raw_input("[ENTER] para continuar")
 
 def apply_to_pibic(aluno,pibic):
+    clear()
+    existe, posicao = pertence(lista_professores, lambda x: x.ID == pibic.getDono())
+    professor  = lista_professores[posicao]
+    professor.mostra_minInfo()
+    print "---Detalhes do pibic---"
     pibic.mostra_pibicinfo()
+    print "-----------------------"
     print "0.Voltar"
     print "1.Aplicar-se"
     opt = int(raw_input("Insira uma opcao : "))
     if opt == APLICAR:
         if aluno.getMwinfo().getIRA() >= pibic.getMinIRA():
-            sendApplymail(aluno,pibic)
+            sendApplymail(aluno,professor,pibic)
             return OPT_SAIR
         else:
             print "[ALRT] O IRA do aluno eh menor do que o necessario"
+	    raw_input("[ENTER] para continuar")
 
 def pesquisar_professores():
     who = raw_input("Nome do professor a ser buscado : ")
     voltar = 0
     while not voltar:
+	clear()
         existe, posicao = pertence(lista_professores, lambda x: x.nome == who)
         if existe:
             lista_professores[posicao].mostra_minInfo()
@@ -237,6 +255,7 @@ def pesquisar_professores():
 def menu():
     sair = OPT_SAIR
     while(not sair):
+	clear()
         print "---Menu---"
         print "0.Sair\n1.Pesquisar Pibics\n2.Pesquisar Professores"
         opt = int(raw_input("Insira sua opcao : "))
@@ -249,7 +268,7 @@ def menu():
 
 def init_cenarios():
     lista_professores.append(
-    Professor("Rezende",123,"samuelpala@gmail.com",#Nome, ID e email do professor
+    Professor("Rezende",123,"gdbranco@gmail.com",#Nome, ID e email do professor
         [Pibicinfo("Seguranca",123,"Trabalhar com topicos na area de seguranca", #Criacao do pibic Area, ID do professor, Descricao
         [], #Lista de membros
         ["Varredura de redes","Verificar falhas","Realizar ataques"], #Lista de atividades
