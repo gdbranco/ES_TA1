@@ -200,7 +200,7 @@ def sendApplymail(aluno,professor,pibic):
     server = smtplib.SMTP('smtp.live.com', 587) #conecta smtp para live.com email que estamos utilizando para enviar no momento
     server.set_debuglevel(1)
     server.starttls()
-    server.login("rapharelo@hotmail.com","populoso96")
+    server.login("email@hotmail.com","senha")
     text = msg.as_string()
     server.sendmail(aluno.getEmail(),professor.getEmail(),text)
     server.quit()
